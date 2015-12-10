@@ -12,5 +12,4 @@ libraryDependencies ++= Seq(
 
 fork in run := true
 
-mainClass in Compile := Some("webmail.WebMail")
 
