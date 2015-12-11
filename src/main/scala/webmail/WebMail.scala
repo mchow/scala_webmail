@@ -20,10 +20,12 @@ object WebMail {
     val subject = (json \ "subject").as[String]
     val templateName = (json \ "template").as[String]
     val from = "Excited User <mailgun@sandbox4bc32b23f7044d5e8ec59628029ae496.mailgun.org>"
+    val template = mail.findReplaceTemplateVars(templateName)
 
     for {
-      response <- mail.sendMail(to, from, subject, mail.getTemplateByName(templateName))
+      response <- mail.sendMail(to, from, subject, template)
     } yield {
+      response.json
       System.exit(1)
     }
   }
@@ -47,10 +49,12 @@ class WebMail {
                         "html" -> Seq(body),
                         "from" -> Seq(from) )
 
-    WebMail.client.url(WebMail.BASE_URI )
+    val client = WebMail.client.url(s"${WebMail.BASE_URI}/messages")
       .withHeaders("Accept" -> "multipart/form-data")
+      .withRequestTimeout(10000)
       .withAuth("api", WebMail.API_KEY, WSAuthScheme.BASIC)
-      .post(formData)
+
+    client.post(formData)
 
   }
 
@@ -63,6 +67,25 @@ class WebMail {
   //todo: store templates in database
   def getAvailableEmailTemplates(): Array[String] = {
     Array("password_reset.html", "welcome_email.html")
+  }
+
+  //todo : interate through some html object structure
+  def findReplaceTemplateVars(templateName:String) = {
+    val html = getTemplateByName(templateName)
+    val pattern = "\\$\\{[a-zA-Z]*\\}".r
+    pattern.findAllMatchIn(html).foreach {
+      print(_)
+    }
+    val firstName = getUserData("${firstName}")
+    html.replaceAll("\\$\\{firstName\\}", firstName)
+  }
+
+  //todo: lookup from user database
+  def getUserData(field:String) = {
+    field match {
+      case "${firstName}" => "Mark"
+      case _ => ""
+    }
   }
 
 }
