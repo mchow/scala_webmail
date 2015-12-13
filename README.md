@@ -15,3 +15,6 @@ POST     /webmail/send
 Example Json Body
 
 '{ "to":"exampleemail@yahoo.com", "subject":"Test Email", "template":"welcome_email.html" }'
+
+## Authentication and Authorization
+need to implement oAuth grants for api access
